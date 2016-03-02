@@ -21,15 +21,24 @@ class genotypes(object):
         """
         plink reader
         """
+        pass
 
     def getK(self):
         """
         return Kinship matrix
         """
+        pass
         
     def impute(self):
         """
         mean impute missing values
         """
+        pass
+
+    def filter(self):
+        """
+        filter genotypes
+        """
+        pass
         
      
