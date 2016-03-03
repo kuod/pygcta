@@ -28,8 +28,7 @@ Functions
 Output Data
 
 TODOs
-
-* Which python modules to import? 
-
-* D and K set up class framework with existing functions
+- [x] Set up class framework with existing functions
+- [ ] Check `pysnptools` documentation for `plink` input reading
+- [ ] Code in bits from paper
 
