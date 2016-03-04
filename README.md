@@ -29,6 +29,10 @@ Output Data
 
 TODOs
 - [x] Set up class framework with existing functions
-- [ ] Check `pysnptools` documentation for `plink` input reading
-- [ ] Code in bits from paper
+- [x] Check `pysnptools` documentation for `plink` input reading
+- [x] Guilt D, J and S into action
+- [ ] Likelihood function in LMM
+- [ ] Optimization function
+- [ ] EM
+- [ ] Test and compare results with `gcta` 
 
