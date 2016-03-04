@@ -72,7 +72,7 @@ class pygcta(object):
         P = V^-1 - V^{-1}X(X'V^{-1}X)^{-1}X'V^{-1}
         """
         XVX = np.dot(np.dot(self.X.T, Vinv), self.X)
-        P = Vinv - np.dot(np.dot(Vinv, self.X) * XVX, np.dot(self.X.T, Vinv))
+        P = Vinv - np.dot(np.dot(Vinv, self.X) * (1./XVX), np.dot(self.X.T, Vinv))
         return P
         
     
