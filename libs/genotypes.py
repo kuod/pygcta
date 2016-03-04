@@ -1,5 +1,7 @@
 import numpy as np
 import pdb
+import kernel
+from pysnptools.snpreader import Bed
 
 class genotypes(object):
     """
@@ -19,21 +21,30 @@ class genotypes(object):
         self.POS = POS
         self.isNormalised = isNormalised
 
-    def read_plink(fn_plink = None):
+    def read_plink(self, fn_plink = None):
         """
         plink reader
         """
-        pass
+        PL = Bed(fn_plink)
+        PLOB = PL.read()
+        PLOBST = PLOB.standardize()
+        self.GT = PLOBST.val.T
+        self.POS = PLOB.pos[:,[0,1]]
+        self.SID = PLOB.iid[:,1]
+        self.isNormalised = True
+
+
 
     def getK(self):
         """
-        return Kinship matrix
+        return Kinship matrix as kernel object
         """
         if not self.isNormalised:
             self.impute()
         K = np.dot(self.GT, self.GT.T)
         K /= K.diagonal().mean()
-        return K
+        Kobj = kernel.kernel(self.SID, K)
+        return Kobj
         
     def impute(self):
         """
@@ -65,8 +76,15 @@ if __name__ == "__main__":
     SID = np.array(['a','b','c','d','e'])
     POS = np.array(zip(np.ones(20).tolist(),range(20)))
 
+    
+
     ### create object
     GEN = genotypes(SID = SID, GT = X, POS = POS)
-    
+
+    ### test read plink file
+    fn_in = "../data/test.bed"
+    GEN.read_plink(fn_plink = fn_in)
+
+
     ### test kinship
     K = GEN.getK()
