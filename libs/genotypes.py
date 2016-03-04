@@ -28,7 +28,7 @@ class genotypes(object):
         PL = Bed(fn_plink)
         PLOB = PL.read()
         PLOBST = PLOB.standardize()
-        self.GT = PLOBST.val.T
+        self.GT = PLOBST.val
         self.POS = PLOB.pos[:,[0,1]]
         self.SID = PLOB.iid[:,1]
         self.isNormalised = True
