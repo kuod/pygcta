@@ -84,7 +84,9 @@ class genotypes(object):
 	print "Filtering %d genotypes based on Missing Fraction\n" % (sum(msf_vec > msf))
 	print "Excluding %d genotypes based on minor allele freq\n" % (sum(maf_vec <maf))
 	keep_idx = (msf_vec < msf) * (maf_vec > maf)
-	self.GT = self.GT[:,keep_idx]
+	# can someone tell me why the ,dtype = boolean messes up the dimensions?
+	# I had to add the [0] index because np.where(keep_idx) returned 2 dimensional arrays 
+	self.GT = self.GT[:,np.where(keep_idx)[0]]
         
         
      
