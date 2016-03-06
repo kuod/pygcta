@@ -15,7 +15,10 @@ class genotypes(object):
         GT: Genotype matrix (Position x Sample)
         POS: Positions (Position x 2)
         """
-
+        # Geno matrix was 3925 x 1000 
+	# Pheno matrix was 3925 x 1 
+	# I think the dimensions are incorrect for the code
+	# Suggest that we transpose GT or fix code -J
         self.SID = SID
         self.GT = GT
         self.POS = POS
@@ -66,7 +69,23 @@ class genotypes(object):
         maf = minimal allele frequency
         msf = minimal snp frequency across one genotype
         """
-        pass
+	n_geno = self.GT.shape[1]
+	n_sample = self.GT.shape[0]
+	maf_vec = np.empty([n_geno,1])
+	msf_vec = np.empty([n_geno,1])
+	for i in range(n_geno):
+	    na_geno = np.isnan(self.GT[:,i])
+	    iOK = ~na_geno
+	    na_count = sum(na_geno)
+	    # calculate maf based on non nan 
+	    msf_vec[i] = na_count / n_sample
+	    maf_vec[i] = sum(self.GT[iOK,i]) / (n_sample * 2)
+	# Filter missing genotypes first
+	print "Filtering %d genotypes based on Missing Fraction\n" % (sum(msf_vec > msf))
+	print "Excluding %d genotypes based on minor allele freq\n" % (sum(maf_vec <maf))
+	keep_idx = (msf_vec < msf) * (maf_vec > maf)
+	self.GT = self.GT[:,keep_idx]
+        
         
      
 if __name__ == "__main__":
