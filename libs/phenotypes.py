@@ -29,11 +29,17 @@ class phenotypes(object):
         self.SID = PHOB.iid[:,1]
 
 
-    def normalize(type=None):
+    def normalize(self, type=None):
         """
         normalize Y
         """
-        pass
+	if type == "standard":
+	    print "Normalizing phenotypes by mean centering and sd division \n"
+	    self.mean = np.mean(self.Y)
+	    self.sd = np.std(self.Y)
+            self.Y = (self.Y - self.mean) / self.sd
+	else:
+            pass
 
 if __name__ == "__main__":
     fn_phen = "../data/test.phen"
