@@ -30,13 +30,10 @@ class genotypes(object):
         """
         PL = Bed(fn_plink)
         PLOB = PL.read()
-        PLOBST = PLOB.standardize()
-        self.GT = PLOBST.val
+        self.GT = PLOB.val
         self.POS = PLOB.pos[:,[0,1]]
         self.SID = PLOB.iid[:,1]
-        self.isNormalised = True
-
-
+        self.isNormalised = False
 
     def getK(self):
         """
@@ -63,42 +60,50 @@ class genotypes(object):
             self.GT[iOK,i] /= np.std(self.GT[iOK,i])
 
 
-    def filter(self, maf = 0.05, msf = 0.5):
+    def filter(self, maf = None, msf = None):
         """
         filter genotypes
         maf = minimal allele frequency
         msf = minimal snp frequency across one genotype
         """
-	n_geno = self.GT.shape[1]
-	n_sample = self.GT.shape[0]
-	maf_vec = np.empty([n_geno,1])
-	msf_vec = np.empty([n_geno,1])
-	for i in range(n_geno):
-	    na_geno = np.isnan(self.GT[:,i])
-	    iOK = ~na_geno
-	    na_count = sum(na_geno)
-	    # calculate maf based on non nan 
-	    msf_vec[i] = na_count / n_sample
-	    maf_vec[i] = sum(self.GT[iOK,i]) / (n_sample * 2)
-	# Filter missing genotypes first
-	print "Filtering %d genotypes based on Missing Fraction\n" % (sum(msf_vec > msf))
-	print "Excluding %d genotypes based on minor allele freq\n" % (sum(maf_vec <maf))
-	keep_idx = (msf_vec < msf) * (maf_vec > maf)
-	# can someone tell me why the ,dtype = boolean messes up the dimensions?
-	# I had to add the [0] index because np.where(keep_idx) returned 2 dimensional arrays 
-	self.GT = self.GT[:,np.where(keep_idx)[0]]
+    	n_geno = self.GT.shape[1]
+    	n_sample = self.GT.shape[0]
+    	maf_vec = np.empty([n_geno,1])
+    	msf_vec = np.empty([n_geno,1])
+    	for i in range(n_geno):
+    	    na_geno = np.isnan(self.GT[:,i])
+    	    iOK = ~na_geno
+    	    na_count = sum(na_geno)
+    	    # calculate maf based on non nan 
+    	    msf_vec[i] = na_count / n_sample
+    	    AF = sum(self.GT[iOK,i]) / ( (n_sample - na_count) * 2)
+	    maf_vec[i] = min(AF, 1-AF)
+    	# Filter missing genotypes first
+    	if maf is None:
+            print "Excluding %d genotypes based on missing freq\n" % (sum(msf_vec > msf))
+            keep_idx = (msf_vec < msf)
+        elif msf is None:
+            print "Excluding %d genotypes based on minor allele freq\n" % (sum(maf_vec <maf))
+            keep_idx = (maf_vec > maf)
+        else:
+            print "Excluding %d genotypes based on minor allele freq\n" % (sum(maf_vec <maf))
+            print "Excluding %d genotypes based on missing freq\n" % (sum(msf_vec > msf))
+            keep_idx = (msf_vec < msf) * (maf_vec > maf)
+    	# can someone tell me why the ,dtype = boolean messes up the dimensions?
+    	# I had to add the [0] index because np.where(keep_idx) returned 2 dimensional arrays 
+        self.GT = self.GT[:,np.where(keep_idx.ravel())[0]]
         
         
      
 if __name__ == "__main__":
 
     ### Some unit testing
-    X = np.random.randn(20*5).reshape(20,5)
-    SID = np.array(['a','b','c','d','e'])
-    POS = np.array(zip(np.ones(20).tolist(),range(20)))
+    #X = np.random.randn(20*5).reshape(20,5)
+    #SID = np.array(['a','b','c','d','e'])
+    #POS = np.array(zip(np.ones(20).tolist(),range(20)))
 
     ### create object
-    GEN = genotypes(SID = SID, GT = X, POS = POS)
+    GEN = genotypes()
 
     ### test read plink file
     fn_in = "../data/test.bed"
@@ -106,4 +111,4 @@ if __name__ == "__main__":
 
 
     ### test kinship
-    K = GEN.getK()
+    #K = GEN.getK()
