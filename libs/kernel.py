@@ -14,10 +14,10 @@ class kernel(object):
 
 
     def save(self, fn):
-        sp.savez(fn, self.K, self.SID)
+        np.savez(fn, self.K, self.SID)
 
     def load(self, fn):
-        data = sp.load(fn)
+        data = np.load(fn)
         self.K = data[data.keys()[0]]
         self.SID = data[data.keys()[1]]
 
