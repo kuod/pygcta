@@ -12,7 +12,7 @@ class genotypes(object):
         """
         Constructor
         SID: Sample ids
-        GT: Genotype matrix (Position x Sample)
+        GT: Genotype matrix (Sample x Position)
         POS: Positions (Position x 2)
         """
         # Geno matrix was 3925 x 1000 
@@ -54,13 +54,13 @@ class genotypes(object):
         mean impute missing values
         and normalize
         """
-        for i in xrange(self.GT.shape[0]):
-            iOK = ~np.isnan(self.GT[i,:])
-            mean = np.mean(self.GT[i,iOK])
-            self.GT[i,:] -= mean
-            Inan = np.isnan(self.GT[i,:])
-            self.GT[i,Inan] = 0.0
-            self.GT[i,iOK] /= np.std(self.GT[i,iOK])
+        for i in xrange(self.GT.shape[1]):
+            iOK = ~np.isnan(self.GT[:,i])
+            mean = np.mean(self.GT[iOK,i])
+            self.GT[:,i] -= mean
+            Inan = np.isnan(self.GT[:,i])
+            self.GT[Inan,i] = 0.0
+            self.GT[iOK,i] /= np.std(self.GT[iOK,i])
 
 
     def filter(self, maf = 0.05, msf = 0.5):
@@ -96,8 +96,6 @@ if __name__ == "__main__":
     X = np.random.randn(20*5).reshape(20,5)
     SID = np.array(['a','b','c','d','e'])
     POS = np.array(zip(np.ones(20).tolist(),range(20)))
-
-    
 
     ### create object
     GEN = genotypes(SID = SID, GT = X, POS = POS)
