@@ -67,7 +67,7 @@ class pygcta(object):
 
         for i,x in enumerate(self.K):
             V += sigmai[i] * x.K
-        V += np.eye(V.shape[0]) * sigmai[-1] ### multiply last one by idendity
+        V += np.eye(V.shape[0]) * sigmai[-1] ### multiply last one by identity
         return V
 
 
@@ -91,7 +91,7 @@ class pygcta(object):
 
         sigma_next = ((sigmai ** 2 ) * np.dot(Y.T, np.dot(P, np.dot(A, np.dot(P, Y)))) + np.trace(sigmai * np.eye(N) - (sigmai ** 2) * np.dot(P,A))) / N
     
-        return sigma_next
+        return sigma_next.flatten()
 
     def optimize(self, tol = 1E4):
         """
@@ -104,7 +104,13 @@ class pygcta(object):
         L_old = self.likelihood(V0, P0, Vinv0)
         print "Likelihood before EM step is: %f" % L_old
 
-        sigma_next = self.emstep(P0, self.K[0].K, self.sigma0[-1])
+        # Update each variance component?? I have no idea what I am doing?
+        sigma_next = np.zeros(self.sigma0.shape)
+        for i in range(len(self.K)):
+            sigma_next[i] = self.emstep(P0, self.K[i].K, self.sigma0[i])
+
+        # How do we update remaining variance component?? Like this or with A=identity?
+        sigma_next[-1] = np.sum(self.sigma0)-np.sum(sigma_next)
 
         V_next = self.getV(sigma_next)
         Vinv_next = la.inv(V_next)
