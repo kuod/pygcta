@@ -46,12 +46,14 @@ class pygcta(object):
         ### find reference set samples
         ### to boring to finish this crap....
         
-    def likelihood(self, V, X, P):
+    def likelihood(self, V, X, P, Vinv=None):
         """
         implement likelihood function
         """
-	# Why did you leave this commented when it was the correct likelihood equation?
-        loglik = -0.5 * (np.log(np.det(V)) + np.log( np.det ( np.dot(np.dot(X.T, np.inv(V)), X) ) ) + np.dot( np.dot( self.Y.T, P), self.Y) )
+        if Vinv is None:
+            Vinv = la.inv(V)
+
+        loglik = -0.5 * (np.log(la.det(V)) + np.log( la.det( np.dot(np.dot(X.T, Vinv), X) ) ) + np.dot( np.dot( self.Y.Y.T, P), self.Y.Y) )
         return loglik
         pass
 
@@ -81,11 +83,10 @@ class pygcta(object):
         """
         return emstep
         """
-	# Assumed that n in the equation is sample size
-	# Identity matrix should be N x N right?
-
-	N = self.Y.shape()[0]
-	# sigma_next = ((sigmai ** 2 ) * np.dot(self.Y.T, np.dot(P, np.dot(A, np.dot(P, self.Y)))) + np.trace(sigmai * np.identity(n = N) - (sigmai ** 2) * np.dot(P,A))) / N
+        # Assumed that n in the equation is sample size
+        # Identity matrix should be N x N right?
+        N = self.Y.shape()[0]
+       # sigma_next = ((sigmai ** 2 ) * np.dot(self.Y.T, np.dot(P, np.dot(A, np.dot(P, self.Y)))) + np.trace(sigmai * np.identity(n = N) - (sigmai ** 2) * np.dot(P,A))) / N
         pass
 
     def optimize(self, tol = 1E4):
@@ -96,7 +97,10 @@ class pygcta(object):
         Vinv0 = la.inv(V0)
         P0 = self.getP(Vinv0)
 
-	# while L_new - L_old > 1E4:
+        L_new = self.likelihood(V0, self.X, P0, Vinv0)
+        print "Likelhood is: %f" % L_new
+
+        # while L_new - L_old > 1E4:
 	    # continue optimization
         
 
