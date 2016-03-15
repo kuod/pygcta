@@ -46,12 +46,14 @@ class pygcta(object):
         ### find reference set samples
         ### to boring to finish this crap....
         
-    def likelihood(self, V, X, P, Vinv=None):
+    def likelihood(self, V, P, Vinv=None, X=None):
         """
         implement likelihood function
         """
         if Vinv is None:
             Vinv = la.inv(V)
+        if  X is None:
+            X = self.X
 
         loglik = -0.5 * (np.log(la.det(V)) + np.log( la.det( np.dot(np.dot(X.T, Vinv), X) ) ) + np.dot( np.dot( self.Y.Y.T, P), self.Y.Y) )
         return loglik
@@ -83,11 +85,13 @@ class pygcta(object):
         """
         return emstep
         """
-        # Assumed that n in the equation is sample size
-        # Identity matrix should be N x N right?
-        N = self.Y.shape()[0]
-       # sigma_next = ((sigmai ** 2 ) * np.dot(self.Y.T, np.dot(P, np.dot(A, np.dot(P, self.Y)))) + np.trace(sigmai * np.identity(n = N) - (sigmai ** 2) * np.dot(P,A))) / N
-        pass
+
+        Y = self.Y.Y
+        N = Y.shape[0]
+
+        sigma_next = ((sigmai ** 2 ) * np.dot(Y.T, np.dot(P, np.dot(A, np.dot(P, Y)))) + np.trace(sigmai * np.eye(N) - (sigmai ** 2) * np.dot(P,A))) / N
+    
+        return sigma_next
 
     def optimize(self, tol = 1E4):
         """
@@ -97,8 +101,17 @@ class pygcta(object):
         Vinv0 = la.inv(V0)
         P0 = self.getP(Vinv0)
 
-        L_new = self.likelihood(V0, self.X, P0, Vinv0)
-        print "Likelhood is: %f" % L_new
+        L_old = self.likelihood(V0, P0, Vinv0)
+        print "Likelihood before EM step is: %f" % L_old
+
+        sigma_next = self.emstep(P0, self.K[0].K, self.sigma0[-1])
+
+        V_next = self.getV(sigma_next)
+        Vinv_next = la.inv(V_next)
+        P_next = self.getP(Vinv_next)
+
+        L_new = self.likelihood(V_next, P_next, Vinv_next)
+        print "Likelihood after EM step is: %f" % L_new
 
         # while L_new - L_old > 1E4:
 	    # continue optimization
