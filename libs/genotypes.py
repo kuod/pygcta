@@ -67,6 +67,7 @@ class genotypes(object):
         msf = minimal snp frequency across one genotype
         """
 
+        # Check input
         if maf is None and msf is None:
             print "Please supply maf and/or msf for filtering."
             return
@@ -74,11 +75,13 @@ class genotypes(object):
             print "Please filter prior to normalization."
             return
 
+        # Calculate minor allele freq for all SNPs (columns) where genotypes are 0/1/2/nan
         maf_vec = np.asarray([np.min((af, 1-af)) for af in 0.5*np.nanmean(self.GT, 0)])
+        # Calculate missing (nan) frequency for SNPs (columns)
         msf_vec = np.mean(np.isnan(self.GT), 0)
 
         if maf is None:
-            print "Excluding %d genotypes based on missing freq > %f" % (sum(msf_vec > msf), msf)
+            print "Excluding %d genotypes based on missing freq > %0f" % (sum(msf_vec > msf), msf)
             keep_idx = (msf_vec < msf)
         elif msf is None:
             print "Excluding %d genotypes based on minor allele freq < %f" % (sum(maf_vec <maf), maf)
