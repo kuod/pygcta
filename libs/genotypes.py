@@ -66,32 +66,29 @@ class genotypes(object):
         maf = minimal allele frequency
         msf = minimal snp frequency across one genotype
         """
-    	n_geno = self.GT.shape[1]
-    	n_sample = self.GT.shape[0]
-    	maf_vec = np.empty([n_geno,1])
-    	msf_vec = np.empty([n_geno,1])
-    	for i in range(n_geno):
-    	    na_geno = np.isnan(self.GT[:,i])
-    	    iOK = ~na_geno
-    	    na_count = sum(na_geno)
-    	    # calculate maf based on non nan 
-    	    msf_vec[i] = na_count / n_sample
-    	    AF = sum(self.GT[iOK,i]) / ( (n_sample - na_count) * 2)
-	    maf_vec[i] = min(AF, 1-AF)
-    	# Filter missing genotypes first
-    	if maf is None:
-            print "Excluding %d genotypes based on missing freq\n" % (sum(msf_vec > msf))
+
+        if maf is None and msf is None:
+            print "Please supply maf and/or msf for filtering."
+            return
+        elif self.isNormalised:
+            print "Please filter prior to normalization."
+            return
+
+        maf_vec = np.asarray([np.min((af, 1-af)) for af in 0.5*np.nanmean(self.GT, 0)])
+        msf_vec = np.mean(np.isnan(self.GT), 0)
+
+        if maf is None:
+            print "Excluding %d genotypes based on missing freq > %f" % (sum(msf_vec > msf), msf)
             keep_idx = (msf_vec < msf)
         elif msf is None:
-            print "Excluding %d genotypes based on minor allele freq\n" % (sum(maf_vec <maf))
+            print "Excluding %d genotypes based on minor allele freq < %f" % (sum(maf_vec <maf), maf)
             keep_idx = (maf_vec > maf)
         else:
-            print "Excluding %d genotypes based on minor allele freq\n" % (sum(maf_vec <maf))
-            print "Excluding %d genotypes based on missing freq\n" % (sum(msf_vec > msf))
+            print "Excluding %d genotypes based on minor allele freq < %f" % (sum(maf_vec <maf), maf)
+            print "Excluding %d genotypes based on missing freq > %f" % (sum(msf_vec > msf), msf)
             keep_idx = (msf_vec < msf) * (maf_vec > maf)
-    	# can someone tell me why the ,dtype = boolean messes up the dimensions?
-    	# I had to add the [0] index because np.where(keep_idx) returned 2 dimensional arrays 
-        self.GT = self.GT[:,np.where(keep_idx.ravel())[0]]
+
+        self.GT = self.GT[:,keep_idx.ravel()]
         
         
      
@@ -108,6 +105,7 @@ if __name__ == "__main__":
     ### test read plink file
     fn_in = "../data/test.bed"
     GEN.read_plink(fn_plink = fn_in)
+    GEN.filter(0.05, 0.1)
 
 
     ### test kinship
