@@ -7,8 +7,8 @@ from libs.phenotypes import *
 from libs.genotypes import *
 from libs.linearmodel import *
 
-fn_bed = "data/test.bed"
-fn_phen = "data/test.phen"
+fn_bed = "data/subset.bed"
+fn_phen = "data/subset.phen"
 if __name__ == "__main__":
 
     ### get genotypes, phenotypes and one kernel
@@ -21,5 +21,5 @@ if __name__ == "__main__":
 
     ### init linear model
     LMM = pygcta(Y = Y, K = [GT.getK()])
-    LMM.optimize()
+    LMM.optimize(tol = 1e-2)
 

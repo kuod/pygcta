@@ -9,7 +9,7 @@ class pygcta(object):
     
     def __init__(self, Y = None, K = None, X = None):
         """
-        Consturctor
+        Constructor
         Y: Phenotype OBJECT
         K: LIST of kernels
         TODO: add covariates later
@@ -93,10 +93,11 @@ class pygcta(object):
     
         return sigma_next.flatten()
 
-    def optimize(self, tol = 1E4):
+    def optimize(self, tol = 1E-4):
         """
         MEAT: run optimization
         """
+        N = self.X.shape[0]
         V0 = self.getV(self.sigma0)
         Vinv0 = la.inv(V0)
         P0 = self.getP(Vinv0)
@@ -110,7 +111,7 @@ class pygcta(object):
             sigma_next[i] = self.emstep(P0, self.K[i].K, self.sigma0[i])
 
         # How do we update remaining variance component?? Like this or with A=identity?
-        sigma_next[-1] = np.sum(self.sigma0)-np.sum(sigma_next)
+        sigma_next[-1] = self.emstep(P0, np.eye(N), self.sigma0[-1])
 
         V_next = self.getV(sigma_next)
         Vinv_next = la.inv(V_next)
@@ -119,9 +120,21 @@ class pygcta(object):
         L_new = self.likelihood(V_next, P_next, Vinv_next)
         print "Likelihood after EM step is: %f" % L_new
 
-        # while L_new - L_old > 1E4:
-	    # continue optimization
+        while L_new - L_old > tol:
+            L_old = L_new
+            for i in range(len(self.K)):
+                sigma_next[i] = self.emstep(P_next, self.K[i].K, sigma_next[i])
+            sigma_next[-1] = self.emstep(P_next, np.eye(N), sigma_next[-1])
+
+            V_next = self.getV(sigma_next)
+            Vinv_next = la.inv(V_next)
+            P_next = self.getP(Vinv_next)
+            L_new = self.likelihood(V_next, P_next, Vinv_next)
+            print "Likelihood after EM step is: %f (+%e)" % (L_new, L_new-L_old)
+
         
+        self.sigma = sigma_next
+        print sigma_next
 
         
 if __name__ == "__main__":
