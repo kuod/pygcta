@@ -90,7 +90,7 @@ class pygcta(object):
         N = Y.shape[0]
 
         sigma_next = ((sigmai ** 2 ) * np.dot(Y.T, np.dot(P, np.dot(A, np.dot(P, Y)))) + np.trace(sigmai * np.eye(N) - (sigmai ** 2) * np.dot(P,A))) / N
-    
+        
         return sigma_next.flatten()
 
     def optimize(self, tol = 1E-4):
@@ -118,8 +118,8 @@ class pygcta(object):
         P_next = self.getP(Vinv_next)
 
         L_new = self.likelihood(V_next, P_next, Vinv_next)
-        print "Likelihood after EM step is: %f" % L_new
-
+        print "Likelihood after initial EM step is: %f" % L_new
+        idx = 2
         while L_new - L_old > tol:
             L_old = L_new
             for i in range(len(self.K)):
@@ -130,11 +130,11 @@ class pygcta(object):
             Vinv_next = la.inv(V_next)
             P_next = self.getP(Vinv_next)
             L_new = self.likelihood(V_next, P_next, Vinv_next)
-            print "Likelihood after EM step is: %f (+%e)" % (L_new, L_new-L_old)
+            print "Likelihood after EM step %s is: %f (Likelihood Difference: +%e)" % (idx, L_new, L_new-L_old)
+            idx += 1
 
-        
         self.sigma = sigma_next
-        print sigma_next
+        print "Final Sigma is %f" % (sigma_next[1])
 
         
 if __name__ == "__main__":
